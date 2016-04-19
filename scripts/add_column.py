@@ -16,8 +16,8 @@ def main():
         description='Add a new column to a WAIS data set')
     parser.add_argument('--data', type=argparse.FileType('r'),
                         default=sys.stdin, help='Text data file')
-    parser.add_argument('col', default='x', help='Name of the new column')
-    parser.add_argument('--val', default='x',
+    parser.add_argument('col', default='.', help='Name of the new column')
+    parser.add_argument('--val', default='.',
                         help='Default value of the column')
 
     args = parser.parse_args()
