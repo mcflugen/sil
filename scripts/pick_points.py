@@ -14,13 +14,16 @@ import matplotlib.pyplot as plt
 from utils import read_data_chunk
 
 
+VALID_FLAGS = ('P', 'S', 'N', 'O', 'V', 'F', )
+
+
 class PointGetter(object):
     def __init__(self, file=None):
         self._file = file or sys.stdout
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
 
-        self.shift_is_held = False
+        self.key_is_held = False
 
         self.fig.canvas.mpl_connect('pick_event', self.on_pick)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
@@ -29,7 +32,7 @@ class PointGetter(object):
         self._picked = []
 
     def on_pick(self, event):
-        if self.shift_is_held:
+        if self.key_is_held:
             this_line = event.artist
             xdata, ydata = this_line.get_xdata(), this_line.get_ydata()
             ind = event.ind[0]
@@ -38,20 +41,23 @@ class PointGetter(object):
                 self.print_range()
 
     def on_key_press(self, event):
-        if event.key == 'shift':
-            self.shift_is_held = True
+        if event.key in VALID_FLAGS:
+            self.key_is_held = event.key
+        else:
+            print(event.key)
 
     def on_key_release(self, event):
-        if event.key == 'shift':
-            self.shift_is_held = False
+        if event.key in VALID_FLAGS:
             self.print_range()
+            self.key_is_held = False
 
     def print_range(self):
         if len(self._picked) > 0:
             range = '{low:d}'.format(low=self._picked[0])
             if len(self._picked) > 1:
                 range += '-{high:d}'.format(high=self._picked[1])
-            print('{range}'.format(range=range), file=self._file)
+            print('{range} {flag}'.format(range=range, flag=self.key_is_held),
+                  file=self._file)
         self._picked = []
 
 
@@ -75,7 +81,8 @@ def main():
 
     pg = PointGetter(file=args.output)
     pg.ax.plot(x, y, 'o', picker=5)
-    pg.ax.set_title('Shift-click to select points')
+    pg.ax.set_title('Hold down a flag key to select points ({keys})'.format(
+        keys=','.join(VALID_FLAGS)))
 
     plt.show()
 
